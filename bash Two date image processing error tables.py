@@ -5,8 +5,6 @@ Created on Wed May  5 15:33:13 2021
 
 @author: coralie
 """
-
-
 # i want to do two date image processing using dates when there's EVI data > 80%
 
 import warnings
@@ -21,6 +19,7 @@ import rpy2.robjects as ro
 from dateutil.relativedelta import relativedelta
 from matplotlib import colors
 import sys
+
 
 var_ref2 = sys.argv[1]
 def_flag = sys.argv[2]
@@ -340,11 +339,11 @@ for yr in range(yrInQ,yrInQ+yrTot):
                  bin_arr[4] = yr
                  bin_arr = np.expand_dims(bin_arr, axis = 0)
                  bin_arr_all = np.append(bin_arr_all, bin_arr, axis = 0 )
-                 
+
 # need to repeat the above but for all forested 
 NoChangeDetectionMask = np.zeros_like(CumulativeArray[2010-2000,:,:])
 NoChangeDetectionMaskFalse = np.zeros_like(CumulativeArray[2010-2000,:,:])
-for_bin_arr_all = np.zeros([6720430,6])
+for_bin_arr_all = np.zeros([6720430,8])
 for_count = 0
 yr_arr = np.arange(yrInQ, yrInQ + yrTot)
 for yr in range(yrInQ, yrInQ + yrTot):
@@ -371,8 +370,8 @@ for yr in range(yrInQ, yrInQ + yrTot):
             Forest10kmMask = ForestPixMask[lat-PL:lat+PL, lon-PL:lon+PL]
             ForestCount10kmMask = ForestCountMask[lat-PL:lat+PL, lon-PL:lon+PL]
             var10km_timerange1 = var10km[np.arange(12 + k, 403, 23), :, :]
-            var10km_timerange2 = var10km[np.arange(12 + k, 403, 23), :, :]
-            var10km_timerange3 = var10km[np.arange(12 + k, 403, 23), :, :]
+            var10km_timerange2 = var10km[np.arange(11 + k, 403, 23), :, :]
+            var10km_timerange3 = var10km[np.arange(13 + k, 403, 23), :, :]
             
             lat_ref = np.arange(lat - PL, lat + PL)
             lon_ref = np.arange(lon - PL, lon + PL)
@@ -391,10 +390,11 @@ for yr in range(yrInQ, yrInQ + yrTot):
             var10km_timerange1 = np.expand_dims(var10km_timerange1, axis = 0)
             var10km_timerange2 = np.expand_dims(var10km_timerange2, axis = 0)
             var10km_timerange3 = np.expand_dims(var10km_timerange3, axis = 0)
-            
-            recurring_def_minus_forest_point3 = np.expand_dims(var10km_timerange3, axis = 0)
-            recurring_point = np.append(var10km_timerange1, var10km_timerange2, axis = 0)
-            recurring_point= np.append(recurring_point, var10km_timerange3, axis = 0)
+            if sd_flag == '3':
+                recurring_point = np.append(var10km_timerange1, var10km_timerange2, axis = 0)
+                recurring_point = np.append(recurring_point, var10km_timerange3, axis = 0)
+            if sd_flag == '1':
+                recurring_point = var10km_timerange1
             
             Forest10km = var10km_point_plot
             ForestNanMask = np.zeros([np.shape(Forest10km)[1], np.shape(Forest10km)[2]])
@@ -417,18 +417,20 @@ for yr in range(yrInQ, yrInQ + yrTot):
                 for lon_10km in range(0,np.shape(Forest10km)[2]):
                     point = forest_diff[:, lat_10km, lon_10km]
                     if np.isnan(point).any() == False:
-                        forest_bin_arr = np.zeros([6])
+                        forest_bin_arr = np.zeros([8])
                         NoChangeTrue = 0
             # if the drop between the year before and year of deforestation is the largest drop and if its below 0 then:
                         if point[0] < point[1]:
                             if point[0] < 0:
                                 forest_bin_arr[1] = point[0]
                                 sd_1 = np.nanstd(recurring_point[:,0:to_extract[0], lat_10km, lon_10km])
+                                forest_bin_arr[5] = np.count_nonzero(~np.isnan(recurring_point[:,0:to_extract[0], lat_10km, lon_10km]))
+                                forest_bin_arr[7] = sd_1 / np.sqrt(np.count_nonzero(~np.isnan(recurring_point[:,0:to_extract[0], lat_10km, lon_10km])))
                                 sd_half = sd_1 * 0.5
                                 sd_2 = sd_1 * 2
                                 sd_3 = sd_1 * 3
                                 forest_bin_arr[0] = 1
-                                forest_bin_arr[5] = np.shape(recurring_point[:,0:to_extract[0], lat_10km, lon_10km])[0] * np.shape(recurring_point[:,0:to_extract[0], lat_10km, lon_10km])[1]
+                                forest_bin_arr[6] = sd_1
                                 if point[0] <= -sd_3:
                                     forest_bin_arr[2] = 3
                                     NoChangeDetectionMask[lat_ref[lat_10km],lon_ref[lon_10km]] = NoChangeDetectionMask[lat_ref[lat_10km],lon_ref[lon_10km]] + 1
@@ -446,11 +448,14 @@ for yr in range(yrInQ, yrInQ + yrTot):
                         if point[1] < point[0]:
                             if point[1] < 0:
                                 forest_bin_arr[1] = point[1]
-                                sd_1 = np.nanstd(recurring_point[:,0:to_extract[0], lat_10km, lon_10km])
+                                sd_1 = np.nanstd(recurring_point[:,0:to_extract[1], lat_10km, lon_10km])
+                                forest_bin_arr[5] = np.count_nonzero(~np.isnan(recurring_point[:,0:to_extract[1], lat_10km, lon_10km]))
+                                forest_bin_arr[7] = sd_1 / np.sqrt(np.count_nonzero(~np.isnan(recurring_point[:,0:to_extract[1], lat_10km, lon_10km])))
                                 sd_half = sd_1 * 0.5
                                 sd_2 = sd_1 * 2
                                 sd_3 = sd_1 * 3
                                 forest_bin_arr[0] = 2
+                                forest_bin_arr[6] = sd_1
                                 # sort this
                                 forest_bin_arr[5] = np.shape(recurring_point[:,0:to_extract[1], lat_10km, lon_10km])[0] * np.shape(recurring_point[:,0:to_extract[1], lat_10km, lon_10km])[1]
                                 if point[1] <= -sd_3:
@@ -476,7 +481,6 @@ for yr in range(yrInQ, yrInQ + yrTot):
                         forest_bin_arr = np.expand_dims(forest_bin_arr, axis = 0)
                         for_bin_arr_all[for_count,:] = forest_bin_arr
 
-
 for k in range(0,2):
     # first loop is for forested. second is for deforested
     if k == 0:
@@ -487,8 +491,6 @@ for k in range(0,2):
         fname = fname_for
     
     elif k == 1:
-        bin_arr_all = bin_arr_all[1:len(bin_arr_all), :]
-        data_all = bin_arr_all
         bin_arr_all = bin_arr_all[1:len(bin_arr_all), :]
         data_all = bin_arr_all
         fname = fname_def
@@ -624,12 +626,12 @@ for k in range(0,2):
     
     filepathImgDiff = '/home/coralie/Documents/Project_work/Remote_sensing/Deforestation_image_differencing/lat2.0-3.6_lon20.8_lon23.8/' + var_ref +'/'
     
-    np.savetxt(filepathImgDiff + 'var_all_data_' + fname, np.transpose(var_all_data[0]), delimiter=',',
+    np.savetxt(filepathImgDiff + 'Data/var_all_data_' + fname, np.transpose(var_all_data[0]), delimiter=',',
                header='Total pixels with drop (%), Total pixels with a drop (no.), 0.5 sd (%), 0.5 sd (no.), 1 sd (%), 1 sd (no.), 2 sd (%), 2 sd (no.), 3 sd (%), 3 sd (no.), Total, Median drop, Mean drop, Sd drop, SE drop, Mean sample size, Med sample size, Mean SD,Mean SE',
                comments = '')
-    np.savetxt(filepathImgDiff + 'yr_table_' + fname, yr_table, delimiter=',',
+    np.savetxt(filepathImgDiff + 'Data/yr_table_' + fname, yr_table, delimiter=',',
                header='Total pixels with drop (%), Total pixels with a drop (no.), 0.5 sd (%), 0.5 sd (no.), 1 sd (%), 1 sd (no.), 2 sd (%), 2 sd (no.), 3 sd (%), 3 sd (no.), Total, Median drop, Mean drop, Sd drop, SE drop, Mean sample size, Med sample size, Mean SD,Mean SE',
                comments = '')
-    np.savetxt(filepathImgDiff + 'month_table_' + fname, month_table, delimiter=',',
+    np.savetxt(filepathImgDiff + 'Data/month_table_' + fname, month_table, delimiter=',',
                header='Total pixels with drop (%), Total pixels with a drop (no.), 0.5 sd (%), 0.5 sd (no.), 1 sd (%), 1 sd (no.), 2 sd (%), 2 sd (no.), 3 sd (%), 3 sd (no.), Total, Median drop, Mean drop, Sd drop, SE drop, Mean sample size, Med sample size, Mean SD,Mean SE',
                comments = '')

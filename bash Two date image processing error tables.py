@@ -383,16 +383,21 @@ for yr in range(yrInQ, yrInQ + yrTot):
             var10km_point_plot = var10km_timerange1[to_extract]
 
             if np.shape(var10km_timerange1) != np.shape(var10km_timerange3):
-                var10km_timerange3 = np.append(var10km_timerange3, np.nan)
+                y = np.zeros([1, np.shape(var10km_timerange3)[1], np.shape(var10km_timerange3)[2]])
+                y[y == 0] = np.nan
+                var10km_timerange3 = np.append(var10km_timerange3, y, axis = 0)
             if np.shape(var10km_timerange1) != np.shape(var10km_timerange2):
                 var10km_timerange2 = var10km_timerange2[0:np.shape(var10km_timerange1)[0]]
                 
             var10km_timerange1 = np.expand_dims(var10km_timerange1, axis = 0)
             var10km_timerange2 = np.expand_dims(var10km_timerange2, axis = 0)
             var10km_timerange3 = np.expand_dims(var10km_timerange3, axis = 0)
+            
             if sd_flag == '3':
-                recurring_point = np.append(var10km_timerange1, var10km_timerange2, axis = 0)
-                recurring_point = np.append(recurring_point, var10km_timerange3, axis = 0)
+                recurring_point = np.zeros([3, np.shape(var10km_timerange1)[1], np.shape(var10km_timerange1)[2], np.shape(var10km_timerange1)[3]])
+                recurring_point[0,:,:,:] = var10km_timerange1
+                recurring_point[1,:,:,:] = var10km_timerange2
+                recurring_point[2,:,:,:] = var10km_timerange3
             if sd_flag == '1':
                 recurring_point = var10km_timerange1
             

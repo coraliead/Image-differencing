@@ -110,4 +110,4 @@ for k in range(0,4):
     y = np.append(kappa, filler, axis = 1)
     kappa_all = np.append(kappa_all, y, axis = 1)
     
-np.savetxt(filepathImgDiff + 'Kappa/Kappa_' + fname_def, kappa_all,  delimiter=',')
+np.savetxt(filepathImgDiff + 'Kappa/Kappa_' + fname_def + '.txt', kappa_all,  delimiter=',')

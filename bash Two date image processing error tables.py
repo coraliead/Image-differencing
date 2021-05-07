@@ -574,14 +574,14 @@ for k in range(0,2):
         month_table[k,8] =  (np.round(total_sd3_diff, 2)) 
         month_table[k,9] =  np.shape(sd_3)[1]
         month_table[k,10] =  (np.shape(data)[0])
-        month_table[k,11] =  (np.round(np.median(diff_arr), 2))
-        month_table[k,12] =  (np.round(np.mean(diff_arr), 2))
-        month_table[k,13] =  (np.round(np.std(diff_arr), 3))
-        month_table[k,14] =  (np.round(np.std(diff_arr) / np.sqrt(np.shape(data)[0]), 4))
-        month_table[k,15] =  np.mean(sample_size)
-        month_table[k,16] =  np.median(sample_size)
-        month_table[k,17] =  np.mean(sd_val_data)
-        month_table[k,18] =  np.mean(se_val_data)
+        month_table[k,11] =  (np.round(np.nanmedian(diff_arr), 2))
+        month_table[k,12] =  (np.round(np.nanmean(diff_arr), 2))
+        month_table[k,13] =  (np.round(np.nanstd(diff_arr), 3))
+        month_table[k,14] =  (np.round(np.nanstd(diff_arr) / np.sqrt(np.shape(data)[0]), 4))
+        month_table[k,15] =  np.nanmean(sample_size)
+        month_table[k,16] =  np.nanmedian(sample_size)
+        month_table[k,17] =  np.nanmean(sd_val_data)
+        month_table[k,18] =  np.nanmean(se_val_data)
         
     yr_table = np.zeros([7,19])
     yr_count = 0
@@ -623,10 +623,10 @@ for k in range(0,2):
             yr_table[yr_count,12] = (np.round(np.mean(diff_arr), 2))
             yr_table[yr_count,13] = (np.round(np.std(diff_arr), 3))
             yr_table[yr_count,14] = (np.round(np.std(diff_arr) / np.sqrt(np.shape(data)[0]), 4))
-            yr_table[yr_count,15] =  np.mean(sample_size)
-            yr_table[yr_count,16] =  np.median(sample_size)
-            yr_table[yr_count,17] =  np.mean(sd_val_data)
-            yr_table[yr_count,18] =  np.mean(se_val_data)
+            yr_table[yr_count,15] =  np.nanmean(sample_size)
+            yr_table[yr_count,16] =  np.nanmedian(sample_size)
+            yr_table[yr_count,17] =  np.nanmean(sd_val_data)
+            yr_table[yr_count,18] =  np.nanmean(se_val_data)
         yr_count = yr_count + 1
     
     filepathImgDiff = '/home/coralie/Documents/Project_work/Remote_sensing/Deforestation_image_differencing/lat2.0-3.6_lon20.8_lon23.8/' + var_ref +'/'

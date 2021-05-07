@@ -631,12 +631,12 @@ for k in range(0,2):
     
     filepathImgDiff = '/home/coralie/Documents/Project_work/Remote_sensing/Deforestation_image_differencing/lat2.0-3.6_lon20.8_lon23.8/' + var_ref +'/'
     
-    np.savetxt(filepathImgDiff + 'Data/var_all_data_' + fname, np.transpose(var_all_data[0]), delimiter=',',
-               header='Total pixels with drop (%), Total pixels with a drop (no.), 0.5 sd (%), 0.5 sd (no.), 1 sd (%), 1 sd (no.), 2 sd (%), 2 sd (no.), 3 sd (%), 3 sd (no.), Total, Median drop, Mean drop, Sd drop, SE drop, Mean sample size, Med sample size, Mean SD,Mean SE',
-               comments = '')
-    np.savetxt(filepathImgDiff + 'Data/yr_table_' + fname, yr_table, delimiter=',',
-               header='Total pixels with drop (%), Total pixels with a drop (no.), 0.5 sd (%), 0.5 sd (no.), 1 sd (%), 1 sd (no.), 2 sd (%), 2 sd (no.), 3 sd (%), 3 sd (no.), Total, Median drop, Mean drop, Sd drop, SE drop, Mean sample size, Med sample size, Mean SD,Mean SE',
-               comments = '')
-    np.savetxt(filepathImgDiff + 'Data/month_table_' + fname, month_table, delimiter=',',
-               header='Total pixels with drop (%), Total pixels with a drop (no.), 0.5 sd (%), 0.5 sd (no.), 1 sd (%), 1 sd (no.), 2 sd (%), 2 sd (no.), 3 sd (%), 3 sd (no.), Total, Median drop, Mean drop, Sd drop, SE drop, Mean sample size, Med sample size, Mean SD,Mean SE',
-               comments = '')
+    np.savetxt(filepathImgDiff + 'Data/var_all_data_' + fname, np.transpose(var_all_data[0]), delimiter=',')
+         #      header='Total pixels with drop (%), Total pixels with a drop (no.), 0.5 sd (%), 0.5 sd (no.), 1 sd (%), 1 sd (no.), 2 sd (%), 2 sd (no.), 3 sd (%), 3 sd (no.), Total, Median drop, Mean drop, Sd drop, SE drop, Mean sample size, Med sample size, Mean SD,Mean SE',
+          #     comments = '')
+    np.savetxt(filepathImgDiff + 'Data/yr_table_' + fname, yr_table, delimiter=',')
+            #   header='Total pixels with drop (%), Total pixels with a drop (no.), 0.5 sd (%), 0.5 sd (no.), 1 sd (%), 1 sd (no.), 2 sd (%), 2 sd (no.), 3 sd (%), 3 sd (no.), Total, Median drop, Mean drop, Sd drop, SE drop, Mean sample size, Med sample size, Mean SD,Mean SE',
+            #   comments = '')
+    np.savetxt(filepathImgDiff + 'Data/month_table_' + fname, month_table, delimiter=',')
+          #     header='Total pixels with drop (%), Total pixels with a drop (no.), 0.5 sd (%), 0.5 sd (no.), 1 sd (%), 1 sd (no.), 2 sd (%), 2 sd (no.), 3 sd (%), 3 sd (no.), Total, Median drop, Mean drop, Sd drop, SE drop, Mean sample size, Med sample size, Mean SD,Mean SE',
+           #    comments = '')

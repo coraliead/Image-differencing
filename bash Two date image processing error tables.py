@@ -31,11 +31,13 @@ edge_pix = sys.argv[7]
 patch_size = sys.argv[8]
 patch_thresh = sys.argv[9]
 yrInQ = sys.argv[10]
-yrTot = sys.argv[11]
+yrEnd = sys.argv[11]
 if def_flag == '0':
     def_ref = 'def-forest'
+    def_ = 'Deforested-forested'
 if def_flag == '1':
     def_ref = 'def'
+    def_ = 'Deforested'
     
 if float(var_ref2) == 0:
     var_ref = 'EVI'
@@ -58,12 +60,13 @@ elif patch_size == '4':
     patch_size_ref = '1km'
 
 yrInQ = int(yrInQ)
-yrTot = int(yrTot)
+yrEnd = int(yrEnd)
 
 fname_def = (var_ref + '_' + def_ref + '_' + sd_flag + '_sd_' + def_thresh + 'd_' + for_thresh +'f_' + data_quality + 'q_' + edge_pix +
-    '_' + str(yrInQ) + '-' + str(yrInQ + yrTot) + '_' + patch_size_ref + '_patches_' + patch_thresh.replace('.', '') )
+    '_' + str(yrInQ) + '-' + str(yrEnd) + '_' + patch_size_ref + '_patches_' + patch_thresh.replace('.', '') )
 fname_for = (var_ref + '_' + 'forest' + '_' + sd_flag + '_sd_' + def_thresh + 'd_' + for_thresh +'f_' + data_quality + 'q_' + edge_pix +
-    '_' + str(yrInQ) + '-' + str(yrInQ + yrTot) + '_' + patch_size_ref + '_patches_' + patch_thresh.replace('.', '') )
+    '_' + str(yrInQ) + '-' + str(yrEnd) + '_' + patch_size_ref + '_patches_' + patch_thresh.replace('.', '') )
+fpath = def_ + '_' + sd_flag + 'sd_' + def_thresh + 'd_' + for_thresh +'f_' + data_quality + 'q_' + edge_pix + '_' + patch_size_ref + '_' + str(yrInQ) + '-' + str(yrEnd)
 
 def_thresh = int(def_thresh)
 for_thresh = int(for_thresh)
@@ -102,9 +105,9 @@ patchLeeway = (patchLat * patchLon) - ((patchLat * patchLon) * patch_thresh)
 if patch_size > 1:
     patch_size = patch_size - 1
 
-ForestMaskAll = np.zeros([yrTot, np.shape(var)[1], np.shape(var)[2]])
+ForestMaskAll = np.zeros([yrEnd-yrInQ, np.shape(var)[1], np.shape(var)[2]])
 
-for year in range(yrInQ,yrInQ + yrTot):   
+for year in range(yrInQ,yrEnd):   
     print(year)
     ForestMask = np.zeros_like(PercentArray[year-2000,:,:])
     ForestMask[np.isnan(PercentArray[year-2000,:,:]) == True] = np.nan 
@@ -161,7 +164,7 @@ for year in range(yrInQ,yrInQ + yrTot):
 var =  xr.open_dataset(filepathEVI + '/Processed/' +'Proc ' + var_ref + ' Land Mask Applied Aqua lon' + StandardNomenclature +'.nc')
 var = var.to_array()
 var = var[0,:,:,:]
-yr_arr = np.arange(yrInQ, yrInQ + yrTot)
+yr_arr = np.arange(yrInQ, yrEnd)
 bin_arr_all = np.zeros([1,8])
 x = np.arange(-2,5)
 
@@ -173,7 +176,7 @@ var_store = np.zeros([7,1])
 ChangeDetectionMask = np.zeros_like(CumulativeArray[2010-2000,:,:])
 sd_arr = np.zeros([3,1])
 
-for yr in range(yrInQ,yrInQ+yrTot):
+for yr in range(yrInQ,yrEnd):
     forest_mask_yr = ForestMaskAll[int(np.where(yr_arr == yr)[0]),:,:]
     def_loc =np.where(forest_mask_yr > 0)
     
@@ -345,8 +348,8 @@ NoChangeDetectionMask = np.zeros_like(CumulativeArray[2010-2000,:,:])
 NoChangeDetectionMaskFalse = np.zeros_like(CumulativeArray[2010-2000,:,:])
 for_bin_arr_all = np.zeros([6720430,8])
 for_count = 0
-yr_arr = np.arange(yrInQ, yrInQ + yrTot)
-for yr in range(yrInQ, yrInQ + yrTot):
+yr_arr = np.arange(yrInQ, yrEnd)
+for yr in range(yrInQ, yrEnd):
 
     forest_mask_yr = ForestMaskAll[int(np.where(yr_arr == yr)[0]),:,:]
     def_loc =np.where(forest_mask_yr > 0)
@@ -494,11 +497,12 @@ for k in range(0,2):
         for_bin_arr_all2 = for_bin_arr_all[1:y[0][1], : ]
         data_all = for_bin_arr_all2
         fname = fname_for
-    
+        f = 'Forested'
     elif k == 1:
         bin_arr_all = bin_arr_all[1:len(bin_arr_all), :]
         data_all = bin_arr_all
         fname = fname_def
+        f = 'Deforested'
         
     minus_diff = np.where(data_all[:,1] < 0)
     sd_half = np.where(data_all[:,2] >= 0.5)
@@ -629,14 +633,14 @@ for k in range(0,2):
             yr_table[yr_count,18] =  np.nanmean(se_val_data)
         yr_count = yr_count + 1
     
-    filepathImgDiff = '/home/coralie/Documents/Project_work/Remote_sensing/Deforestation_image_differencing/lat2.0-3.6_lon20.8_lon23.8/' + var_ref +'/'
+    filepathImgDiff = '/home/coralie/Documents/Project_work/Remote_sensing/Deforestation_image_differencing/lat2.0-3.6_lon20.8_lon23.8/' + var_ref +'/' + fpath + '/'
     
-    np.savetxt(filepathImgDiff + 'Data/var_all_data_' + fname +'.txt', np.transpose(var_all_data[0]), delimiter=',')
+    np.savetxt(filepathImgDiff + 'Data/' + f + '/var_all_data_' + fname , np.transpose(var_all_data[0]), delimiter=',')
          #      header='Total pixels with drop (%), Total pixels with a drop (no.), 0.5 sd (%), 0.5 sd (no.), 1 sd (%), 1 sd (no.), 2 sd (%), 2 sd (no.), 3 sd (%), 3 sd (no.), Total, Median drop, Mean drop, Sd drop, SE drop, Mean sample size, Med sample size, Mean SD,Mean SE',
           #     comments = '')
-    np.savetxt(filepathImgDiff + 'Data/yr_table_' + fname +'.txt', yr_table, delimiter=',')
+    np.savetxt(filepathImgDiff + 'Data/' + f + '/yr_table_' + fname , yr_table, delimiter=',')
             #   header='Total pixels with drop (%), Total pixels with a drop (no.), 0.5 sd (%), 0.5 sd (no.), 1 sd (%), 1 sd (no.), 2 sd (%), 2 sd (no.), 3 sd (%), 3 sd (no.), Total, Median drop, Mean drop, Sd drop, SE drop, Mean sample size, Med sample size, Mean SD,Mean SE',
             #   comments = '')
-    np.savetxt(filepathImgDiff + 'Data/month_table_' + fname +'.txt', month_table, delimiter=',')
+    np.savetxt(filepathImgDiff + 'Data/' + f + '/month_table_' + fname , month_table, delimiter=',')
           #     header='Total pixels with drop (%), Total pixels with a drop (no.), 0.5 sd (%), 0.5 sd (no.), 1 sd (%), 1 sd (no.), 2 sd (%), 2 sd (no.), 3 sd (%), 3 sd (no.), Total, Median drop, Mean drop, Sd drop, SE drop, Mean sample size, Med sample size, Mean SD,Mean SE',
            #    comments = '')

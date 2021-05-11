@@ -23,11 +23,13 @@ edge_pix = sys.argv[7]
 patch_size = sys.argv[8]
 patch_thresh = sys.argv[9]
 yrInQ = sys.argv[10]
-yrTot = sys.argv[11]
+yrEnd = sys.argv[11]
 if def_flag == '0':
     def_ref = 'def-forest'
+    def_ = 'Deforested-forested'
 if def_flag == '1':
     def_ref = 'def'
+    def_ = 'Deforested'
     
 if float(var_ref2) == 0:
     var_ref = 'EVI'
@@ -50,18 +52,18 @@ elif patch_size == '4':
     patch_size_ref = '1km'
     
 yrInQ = int(yrInQ)
-yrTot = int(yrTot)
+yrEnd = int(yrEnd)
 
 fname_def = (var_ref + '_' + def_ref + '_' + sd_flag + '_sd_' + def_thresh + 'd_' + for_thresh +'f_' + data_quality + 'q_' + edge_pix +
-    '_' + str(yrInQ) + '-' + str(yrInQ + yrTot) + '_' + patch_size_ref + '_patches_' + patch_thresh.replace('.', '') )
+    '_' + str(yrInQ) + '-' + str(yrEnd) + '_' + patch_size_ref + '_patches_' + patch_thresh.replace('.', '') )
 fname_for = (var_ref + '_' + 'forest' + '_' + sd_flag + '_sd_' + def_thresh + 'd_' + for_thresh +'f_' + data_quality + 'q_' + edge_pix +
-    '_' + str(yrInQ) + '-' + str(yrInQ + yrTot) + '_' + patch_size_ref + '_patches_' + patch_thresh.replace('.', '') )
+    '_' + str(yrInQ) + '-' + str(yrEnd) + '_' + patch_size_ref + '_patches_' + patch_thresh.replace('.', '') )
 
+fpath = def_ + '_' + sd_flag + 'sd_' + def_thresh + 'd_' + for_thresh +'f_' + data_quality + 'q_' + edge_pix + '_' + patch_size_ref + '_' + str(yrInQ) + '-' + str(yrEnd)
+filepathImgDiff = '/home/coralie/Documents/Project_work/Remote_sensing/Deforestation_image_differencing/lat2.0-3.6_lon20.8_lon23.8/' + var_ref +'/' + fpath + '/'
 
-filepathImgDiff = '/home/coralie/Documents/Project_work/Remote_sensing/Deforestation_image_differencing/lat2.0-3.6_lon20.8_lon23.8/' + var_ref +'/'
-
-def_data = np.loadtxt(filepathImgDiff + 'Data/var_all_data_' + fname_def, skiprows=1)
-for_data = np.loadtxt(filepathImgDiff + 'Data/var_all_data_' + fname_for, skiprows=1)
+def_data = np.loadtxt(filepathImgDiff + 'Data/Deforested/var_all_data_' + fname_def)
+for_data = np.loadtxt(filepathImgDiff + 'Data/Forested/var_all_data_' + fname_for)
 filler = np.zeros([11,1])
 kappa_all = np.zeros([11,1])
 kappa_all[kappa_all == 0] = -9999
@@ -110,4 +112,4 @@ for k in range(0,4):
     y = np.append(kappa, filler, axis = 1)
     kappa_all = np.append(kappa_all, y, axis = 1)
     
-np.savetxt(filepathImgDiff + 'Kappa/Kappa_' + fname_def + '.txt', kappa_all,  delimiter=',')
+np.savetxt(filepathImgDiff + 'Kappa/Kappa_' + fname_def, kappa_all,  delimiter=',')

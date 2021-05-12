@@ -177,7 +177,7 @@ var =  xr.open_dataset(filepathEVI + '/Processed/' +'Proc ' + var_ref + ' Land M
 var = var.to_array()
 var = var[0,:,:,:]
 yr_arr = np.arange(yrInQ, yrEnd)
-bin_arr_all = np.zeros([1,9])
+bin_arr_all = np.zeros([1,11])
 x = np.arange(-2,5)
 
 def_minus_forest_store = np.zeros([7,1])
@@ -188,6 +188,8 @@ var_store = np.zeros([7,1])
 ChangeDetectionMask = np.zeros_like(CumulativeArray[2010-2000,:,:])
 sd_arr = np.zeros([3,1])
 clump_mask = np.load(filepath + 'clump_mask_' + str(def_thresh) + 'd_lon' + StandardNomenclature + '.npy')
+frag_mask = np.load(filepath + 'frag_mask_' + str(def_thresh) + 'd_lon' + StandardNomenclature + '.npy')
+
 pix_size = 250*250
 for yr in range(yrInQ,yrEnd):
     forest_mask_yr = ForestMaskAll[int(np.where(yr_arr == yr)[0]),:,:]
@@ -203,10 +205,10 @@ for yr in range(yrInQ,yrEnd):
             lat = int(def_loc[0][m])
             lon = int(def_loc[1][m])
             varpoint = var[:,lat,lon].values
-#            clump_no = clump_mask[lat, lon]
- #           clump_tot = (clump_mask == clump_no).sum()
-  #          clump_size = clump_tot * pix_size / 1000000
-
+            clump_no = clump_mask[lat, lon]
+            clump_tot = (clump_mask == clump_no).sum()
+            clump_size = clump_tot * pix_size / 1000000
+            frag = frag_mask[lat, lon]
             PL = int((10/0.25)/2)
             latminPL = lat-PL
             latmaxPL = lat+PL
@@ -296,19 +298,34 @@ for yr in range(yrInQ,yrEnd):
             
             # adding this is so that if either of the differences are a nan then its not included 
             if  np.isnan([def_minus_forest_diff[1],  def_minus_forest_diff[2]]).any() == False:
-                 bin_arr = np.zeros([9])
+                 bin_arr = np.zeros([11])
                  if def_minus_forest_diff[1] < def_minus_forest_diff[2]:
                      if def_minus_forest_diff[1] < 0:
                          bin_arr[1] = def_minus_forest_diff[1]
-                      #   if clump_size == 0.0625:
-                       #      bin_arr[8] = 1
-                        # elif 0.0625 < clump_size <= 0.25:
-                         #    bin_arr[8] = 2
-                        # elif 0.25 < clump_size <= 0.5625:
-                         #    bin_arr[8] = 3
-                       #  elif clump_size > 0.5625:
-                        #     bin_arr[8] = 4
+                         if clump_size == 0.0625:
+                             bin_arr[8] = 1
+                         elif 0.0625 < clump_size <= 0.25:
+                             bin_arr[8] = 2
+                         elif 0.25 < clump_size <= 0.5625:
+                             bin_arr[8] = 3
+                         elif clump_size > 0.5625:
+                             bin_arr[8] = 4
                          
+                         if frag < 20:
+                             bin_arr[9] = 1
+                         elif frag < 40:
+                             bin_arr[9] = 2
+                         elif frag < 60:
+                             bin_arr[9] = 3
+                         else: bin_arr[9] = 4
+                         
+                         if def_thresh < 70:
+                             bin_arr[10] = 1
+                         elif def_thresh < 80:
+                             bin_arr[10] = 2
+                         elif def_thresh < 90:
+                             bin_arr[10] = 3
+                         else: bin_arr[10] = 4
                          
                          if sd_flag == '3':
                              sd_1 = np.nanstd(recurring_point[:, 0:to_extract[1]])
@@ -537,8 +554,8 @@ for k in range(0,2):
         fname = fname_for
         f = 'Forested'
     elif k == 1:
-        bin_arr_all = bin_arr_all[1:len(bin_arr_all), :]
-        data_all = bin_arr_all
+        bin_arr_all1 = bin_arr_all[1:len(bin_arr_all), :]
+        data_all = bin_arr_all1
         fname = fname_def
         f = 'Deforested'
         
@@ -682,3 +699,35 @@ for k in range(0,2):
     np.savetxt(filepathImgDiff + 'Data/' + f + '/month_table_' + fname , month_table, delimiter=',')
           #     header='Total pixels with drop (%), Total pixels with a drop (no.), 0.5 sd (%), 0.5 sd (no.), 1 sd (%), 1 sd (no.), 2 sd (%), 2 sd (no.), 3 sd (%), 3 sd (no.), Total, Median drop, Mean drop, Sd drop, SE drop, Mean sample size, Med sample size, Mean SD,Mean SE',
            #    comments = '')
+#%%
+
+# need to look at detection according to bins. primarily interetsed in 2sd threshold. for month and year the clump total sizes need to be
+# calculated again 
+clumps = np.unique(clump_mask)
+clumps = clumps[1:np.shape(clumps)[0]]
+
+clumpSizeStorage = np.zeros([clumps], dtype = 'float64')
+
+# also should be noted that clump_mask contains all clumps from 2001-19 and therefore needs to be  narrowed down 
+
+for clump in clumps:
+    clumpCells = np.size(clump_mask[clump_mask == clump])
+    clump_size = clumpCells * pix_size   
+    clumpSizeStorage[clump] = clump_size
+    
+    
+    if clump_size == 0.0625:
+        bin_arr[8] = 1
+    elif 0.0625 < clump_size <= 0.25:
+        bin_arr[8] = 2
+    elif 0.25 < clump_size <= 0.5625:
+        bin_arr[8] = 3
+    elif clump_size > 0.5625:
+        bin_arr[8] = 4
+    
+    
+bin_arr_all1 = bin_arr_all[1:len(bin_arr_all), :]
+data_all = bin_arr_all1
+sd_2 = np.where(data_all[:,2] >= 2)
+
+# area bins: needs to be a percentage, so the number of changes detected vs the total number of changes detection for that area

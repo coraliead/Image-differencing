@@ -90,6 +90,49 @@ for k in range(1,20):
         col = 0
         
 np.save(filepath + 'clump_mask_' + str(def_thresh) + 'd_lon' + StandardNomenclature, mask)
+
+#%%
+mask = np.load(filepath + 'clump_mask_' + str(def_thresh) + 'd_lon' + StandardNomenclature + '.npy')
+
+clumps = np.unique(mask)
+# removing the 0 from this
+clumps = clumps[1:np.shape(clumps)[0]]
+print(len(clumps))
+count=0
+frag_mask = np.zeros([np.shape(mask)[0], np.shape(mask)[1]])
+pix_size = 250*250
+for clump in clumps:
+    edge_count = 0
+    clump_ref = np.where(mask == clump)
+    print(count)
+    count = count + 1
+    count_mask = np.zeros([np.shape(mask)[0], np.shape(mask)[1]])
+    for k in range(np.shape(clump_ref)[1]):
+        lat = clump_ref[0][k]
+        lon = clump_ref[1][k]
+        if lat != (np.shape(frag_mask)[0] - 1):
+            if mask[lat+1, lon] != clump and count_mask[lat+1, lon] == 0:
+                edge_count = edge_count+1
+                count_mask[lat+1, lon] = 1
+        if lon != (np.shape(frag_mask)[1] - 1):
+            if mask[lat, lon+1] != clump and count_mask[lat, lon+1] == 0:
+                edge_count = edge_count+1        
+                count_mask[lat, lon+1] = 1
+        if lat != 0:
+            if mask[lat-1, lon] != clump and count_mask[lat-1, lon] == 0:
+                edge_count = edge_count+1
+                count_mask[lat-1, lon] = 1
+        if lon != 0:
+            if mask[lat, lon-1] != clump and count_mask[lat, lon-1] == 0:
+                edge_count = edge_count+1    
+                count_mask[lat, lon-1] = 1
+    clump_tot = np.shape(clump_ref)[1]
+    clump_size = clump_tot * pix_size / 1000000  
+    frag_mask[clump_ref] = edge_count / clump_size
+np.save(filepath + 'frag_mask_' + str(def_thresh) + 'd_lon' + StandardNomenclature, frag_mask)
+                        
+                            
+                         
 #%%
 # this section is calculating the area of the clumps
 PixelSize = 30*30

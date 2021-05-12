@@ -21,17 +21,30 @@ from matplotlib import colors
 import sys
 
 
-var_ref2 = sys.argv[1]
-def_flag = sys.argv[2]
-sd_flag = sys.argv[3]
-def_thresh = sys.argv[4]
-for_thresh = sys.argv[5]
-data_quality = sys.argv[6]
-edge_pix = sys.argv[7]
-patch_size = sys.argv[8]
-patch_thresh = sys.argv[9]
-yrInQ = sys.argv[10]
-yrEnd = sys.argv[11]
+# var_ref2 = sys.argv[1]
+# def_flag = sys.argv[2]
+# sd_flag = sys.argv[3]
+# def_thresh = sys.argv[4]
+# for_thresh = sys.argv[5]
+# data_quality = sys.argv[6]
+# edge_pix = sys.argv[7]
+# patch_size = sys.argv[8]
+# patch_thresh = sys.argv[9]
+# yrInQ = sys.argv[10]
+# yrEnd = sys.argv[11]
+
+var_ref2 = '0'
+def_flag = '1'
+sd_flag = '1'
+def_thresh = '60'
+for_thresh = '5'
+data_quality = '80'
+edge_pix = 'n'
+patch_size = '1'
+patch_thresh = '0.75'
+yrInQ = '2012'
+yrEnd = '2013'
+
 if def_flag == '0':
     def_ref = 'def-forest'
     def_ = 'Deforested-forested'
@@ -77,6 +90,7 @@ patch_thresh = float(patch_thresh)
 
 filepathEVI = '/home/coralie/Documents/Project_work/Remote_sensing/Data/MODIS_EVI/'  
 filepathHansen = '/home/coralie/Documents/Project_work/Remote_sensing/Data/Hansen/'  
+filepath = '/home/coralie/Documents/Project_work/Remote_sensing/Deforestation_image_differencing/'
 
 latmin, latmax, lonmin, lonmax = 2.0, 3.6, 20.8, 23.4
 # basankusu 
@@ -159,13 +173,11 @@ for year in range(yrInQ,yrEnd):
 #%%
 # now go through the years and the forest mask for each year. compare year before, year of def, and years after. only for EVI > 80%
 
-
-
 var =  xr.open_dataset(filepathEVI + '/Processed/' +'Proc ' + var_ref + ' Land Mask Applied Aqua lon' + StandardNomenclature +'.nc')
 var = var.to_array()
 var = var[0,:,:,:]
 yr_arr = np.arange(yrInQ, yrEnd)
-bin_arr_all = np.zeros([1,8])
+bin_arr_all = np.zeros([1,9])
 x = np.arange(-2,5)
 
 def_minus_forest_store = np.zeros([7,1])
@@ -175,14 +187,15 @@ fig.subplots_adjust(hspace = 0)
 var_store = np.zeros([7,1])
 ChangeDetectionMask = np.zeros_like(CumulativeArray[2010-2000,:,:])
 sd_arr = np.zeros([3,1])
-
+clump_mask = np.load(filepath + 'clump_mask_' + str(def_thresh) + 'd_lon' + StandardNomenclature + '.npy')
+pix_size = 250*250
 for yr in range(yrInQ,yrEnd):
     forest_mask_yr = ForestMaskAll[int(np.where(yr_arr == yr)[0]),:,:]
     def_loc =np.where(forest_mask_yr > 0)
     
     ForestPixMask = np.zeros_like(CumulativeArray[yr-2000,:,:])
     ForestPixMask[CumulativeArray[yr-2000,:,:] <= for_thresh] = 1
-
+    
     for k in range(0,23):
         print(str(k) + '-' + str(yr) + ', size = ' + str(np.shape(def_loc)[1]) + ' ' + str(var[np.arange(12 + k, 403, 23),:,:].time[0].values)[5:10])
         for m in range(len(def_loc[0])):
@@ -190,11 +203,20 @@ for yr in range(yrInQ,yrEnd):
             lat = int(def_loc[0][m])
             lon = int(def_loc[1][m])
             varpoint = var[:,lat,lon].values
-            
+#            clump_no = clump_mask[lat, lon]
+ #           clump_tot = (clump_mask == clump_no).sum()
+  #          clump_size = clump_tot * pix_size / 1000000
+
             PL = int((10/0.25)/2)
+            latminPL = lat-PL
+            latmaxPL = lat+PL
+            lonminPL = lon-PL
+            lonmaxPL = lon+PL
+            if latminPL < 0: latminPL = 0
+            if lonminPL < 0: lonminPL = 0
             # extracting EVI for surrounding 10km and extracting forest mask for this area 
-            var10km = var[:, lat-PL:lat+PL, lon-PL:lon+PL]
-            Forest10kmMask = ForestPixMask[lat-PL:lat+PL, lon-PL:lon+PL]
+            var10km = var[:, latminPL:latmaxPL, lonminPL:lonmaxPL]
+            Forest10kmMask = ForestPixMask[latminPL:latmaxPL, lonminPL:lonmaxPL]
             var10km_timerange = var10km[np.arange(12 + k, 403, 23), :, :]
             
             # looping through each date and selecting the associated var10km variable, using the  forest mask to average all forested 
@@ -274,10 +296,19 @@ for yr in range(yrInQ,yrEnd):
             
             # adding this is so that if either of the differences are a nan then its not included 
             if  np.isnan([def_minus_forest_diff[1],  def_minus_forest_diff[2]]).any() == False:
-                 bin_arr = np.zeros([8])
+                 bin_arr = np.zeros([9])
                  if def_minus_forest_diff[1] < def_minus_forest_diff[2]:
                      if def_minus_forest_diff[1] < 0:
                          bin_arr[1] = def_minus_forest_diff[1]
+                      #   if clump_size == 0.0625:
+                       #      bin_arr[8] = 1
+                        # elif 0.0625 < clump_size <= 0.25:
+                         #    bin_arr[8] = 2
+                        # elif 0.25 < clump_size <= 0.5625:
+                         #    bin_arr[8] = 3
+                       #  elif clump_size > 0.5625:
+                        #     bin_arr[8] = 4
+                         
                          
                          if sd_flag == '3':
                              sd_1 = np.nanstd(recurring_point[:, 0:to_extract[1]])
@@ -368,16 +399,23 @@ for yr in range(yrInQ, yrEnd):
             varpoint = var[:,lat,lon].values
             
             PL = int((10/0.25)/2)
+            latminPL = lat-PL
+            latmaxPL = lat+PL
+            lonminPL = lon-PL
+            lonmaxPL = lon+PL
+            if latminPL < 0: latminPL = 0
+            if lonminPL < 0: lonminPL = 0
+
             # extracting EVI for surrounding 10km and extracting forest mask for this area 
-            var10km = var[:, lat-PL:lat+PL, lon-PL:lon+PL]
-            Forest10kmMask = ForestPixMask[lat-PL:lat+PL, lon-PL:lon+PL]
+            var10km = var[:, latminPL:latmaxPL, lonminPL:lonmaxPL]
+            Forest10kmMask = ForestPixMask[latminPL:latmaxPL, lonminPL:lonmaxPL]
             ForestCount10kmMask = ForestCountMask[lat-PL:lat+PL, lon-PL:lon+PL]
             var10km_timerange1 = var10km[np.arange(12 + k, 403, 23), :, :]
             var10km_timerange2 = var10km[np.arange(11 + k, 403, 23), :, :]
             var10km_timerange3 = var10km[np.arange(13 + k, 403, 23), :, :]
             
-            lat_ref = np.arange(lat - PL, lat + PL)
-            lon_ref = np.arange(lon - PL, lon + PL)
+            lat_ref = np.arange(latminPL, latmaxPL)
+            lon_ref = np.arange(lonminPL, lonmaxPL)
             
             larger_than = np.where(var10km_timerange1.time.dt.year >= yr - 1)
             smaller_than = np.where(var10km_timerange1.time.dt.year <= yr + 1)

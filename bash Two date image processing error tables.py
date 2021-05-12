@@ -589,7 +589,7 @@ for k in range(0,2):
         
     yr_table = np.zeros([7,19])
     yr_count = 0
-    for k in range(2010, 2017):
+    for k in range(yrInQ, yrEnd):
         data_ref = np.where(data_all[:,4] == k)
         data = data_all[data_ref, :][0]
         minus_diff = np.where(data[:,1] < 0)

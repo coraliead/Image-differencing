@@ -299,33 +299,34 @@ for yr in range(yrInQ,yrEnd):
             # adding this is so that if either of the differences are a nan then its not included 
             if  np.isnan([def_minus_forest_diff[1],  def_minus_forest_diff[2]]).any() == False:
                  bin_arr = np.zeros([11])
+                 if clump_size == 0.0625:
+                    bin_arr[8] = 1
+                 elif 0.0625 < clump_size <= 0.25:
+                    bin_arr[8] = 2
+                 elif 0.25 < clump_size <= 0.5625:
+                    bin_arr[8] = 3
+                 elif clump_size > 0.5625:
+                    bin_arr[8] = 4
+                 else: print(clump_size)
+                
+                 if frag < 20:
+                    bin_arr[9] = 1
+                 elif frag < 40:
+                    bin_arr[9] = 2
+                 elif frag < 60:
+                    bin_arr[9] = 3
+                 else: bin_arr[9] = 4
+                 
+                 if def_thresh < 70:
+                    bin_arr[10] = 1
+                 elif def_thresh < 80:
+                    bin_arr[10] = 2
+                 elif def_thresh < 90:
+                    bin_arr[10] = 3
+                 else: bin_arr[10] = 4
                  if def_minus_forest_diff[1] < def_minus_forest_diff[2]:
                      if def_minus_forest_diff[1] < 0:
                          bin_arr[1] = def_minus_forest_diff[1]
-                         if clump_size == 0.0625:
-                             bin_arr[8] = 1
-                         elif 0.0625 < clump_size <= 0.25:
-                             bin_arr[8] = 2
-                         elif 0.25 < clump_size <= 0.5625:
-                             bin_arr[8] = 3
-                         elif clump_size > 0.5625:
-                             bin_arr[8] = 4
-                         
-                         if frag < 20:
-                             bin_arr[9] = 1
-                         elif frag < 40:
-                             bin_arr[9] = 2
-                         elif frag < 60:
-                             bin_arr[9] = 3
-                         else: bin_arr[9] = 4
-                         
-                         if def_thresh < 70:
-                             bin_arr[10] = 1
-                         elif def_thresh < 80:
-                             bin_arr[10] = 2
-                         elif def_thresh < 90:
-                             bin_arr[10] = 3
-                         else: bin_arr[10] = 4
                          
                          if sd_flag == '3':
                              sd_1 = np.nanstd(recurring_point[:, 0:to_extract[1]])
@@ -390,7 +391,7 @@ for yr in range(yrInQ,yrEnd):
                  bin_arr[4] = yr
                  bin_arr = np.expand_dims(bin_arr, axis = 0)
                  bin_arr_all = np.append(bin_arr_all, bin_arr, axis = 0 )
-
+#%%
 # need to repeat the above but for all forested 
 NoChangeDetectionMask = np.zeros_like(CumulativeArray[2010-2000,:,:])
 NoChangeDetectionMaskFalse = np.zeros_like(CumulativeArray[2010-2000,:,:])
@@ -463,7 +464,7 @@ for yr in range(yrInQ, yrEnd):
             ForestNanMask = np.zeros([np.shape(Forest10km)[1], np.shape(Forest10km)[2]])
             # making a forest nan mask which saves the location of every nan across the three time steps
             for d in range(0,3):
-                ForestNanMask[np.isnan(Forest10km[d,:,:]) == True] = 1
+                ForestNanMask[np.isnan(Forest10km[d,:,:].values) == True] = 1
             # applying the nan mask to ensure that all three time steps have the same data and nanning out all locations which aren't
             # classed 
             for g in range(0,3):
@@ -706,9 +707,13 @@ for k in range(0,2):
 clumps = np.unique(clump_mask)
 clumps = clumps[1:np.shape(clumps)[0]]
 
-clumpSizeStorage = np.zeros([clumps], dtype = 'float64')
+clumpSizeStorage = np.zeros([np.shape(clumps)[0]], dtype = 'float64')
 
 # also should be noted that clump_mask contains all clumps from 2001-19 and therefore needs to be  narrowed down 
+bin_arr_all1 = bin_arr_all[1:len(bin_arr_all), :]
+data_all = bin_arr_all1
+sd_2 = np.where(data_all[:,2] >= 2)
+
 
 for clump in clumps:
     clumpCells = np.size(clump_mask[clump_mask == clump])
@@ -726,8 +731,6 @@ for clump in clumps:
         bin_arr[8] = 4
     
     
-bin_arr_all1 = bin_arr_all[1:len(bin_arr_all), :]
-data_all = bin_arr_all1
-sd_2 = np.where(data_all[:,2] >= 2)
+
 
 # area bins: needs to be a percentage, so the number of changes detected vs the total number of changes detection for that area
